@@ -34,12 +34,12 @@ class SoftLink {
   ///
   /// Must be called before any other SoftLink methods.
   ///
-  /// - [baseUrl]: Your SoftLink backend URL (e.g. `https://api-link.yourapp.com`)
+  /// - [baseUrl]: Your SoftLink backend URL. Defaults to `https://api.supersoftlink.com`
   /// - [apiKey]: Your app's API key from the SoftLink portal (starts with `sl_`)
   /// - [onDeepLink]: Callback fired when a deep link is resolved. Receives
   ///   a [SoftLinkDeepLink] with screen and params, or `null` if resolution failed.
   static Future<void> init({
-    required String baseUrl,
+    String baseUrl = 'https://api.supersoftlink.com',
     required String apiKey,
     OnSoftLinkDeepLink? onDeepLink,
   }) async {
