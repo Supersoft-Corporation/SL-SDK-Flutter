@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.4
+
+* Updated the README.md file to the correct version
+* No code changes from 0.0.1
+
 ## 0.0.3
 
 * Published under verified publisher supersoft.com.pk
