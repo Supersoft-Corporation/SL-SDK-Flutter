@@ -1,3 +1,13 @@
+# Changelog
+
 ## 0.0.1
 
-* TODO: Describe initial release.
+* Initial public release
+* Deep linking support (app already installed)
+* Deferred deep linking via IP + device fingerprinting
+* Device-level install attribution (Android ID / iOS IDFV)
+* Automatic duplicate URI deduplication
+* GetStorage-based persistent storage
+* Snapchat CAPI integration support via SoftLink backend
+* `onDeepLink` callback for custom navigation handling
+* Support for static and dynamic link types
