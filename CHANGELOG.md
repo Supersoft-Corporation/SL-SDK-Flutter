@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.0.5
+
+* Updated `device_info_plus` constraint to `^11.5.0`
+* Updated `app_links` constraint to `^7.2.0`
+* Fixed example `pubspec.yaml` SDK constraint
+* Added `generateReferralLink` method for runtime dynamic link generation
+* Added dartdoc comments to all public API elements
+* Added example app
+* Updated repository URL to `https://github.com/Supersoft-Corporation/SL-SDK-Flutter`
+
 ## 0.0.4
 
 * Updated the README.md file to the correct version

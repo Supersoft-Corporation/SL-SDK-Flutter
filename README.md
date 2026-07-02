@@ -15,7 +15,7 @@ Official Flutter SDK for [SoftLink](https://supersoftlink.com) — a deep link m
 
 ```yaml
 dependencies:
-  softlink_flutter: ^0.0.4
+  softlink_flutter: ^0.0.5
 ```
 
 ## Usage
@@ -45,6 +45,36 @@ class _MyAppState extends State<MyApp> {
   }
 }
 ```
+
+## Generating Referral Links (Dynamic Links)
+
+Use `SoftLink.generateReferralLink()` to generate shareable deep links at runtime:
+
+```dart
+// Without token (finds first dynamic link matching screenKey):
+final url = await SoftLink.generateReferralLink(
+  screenKey: 'PRODUCT_DETAIL',
+  values: {'productId': '209', 'categoryId': '220'},
+  referrerId: currentUser.id, // optional
+);
+
+// With token (targets a specific dynamic link):
+final url = await SoftLink.generateReferralLink(
+  screenKey: 'PRODUCT_DETAIL',
+  values: {'productId': '209', 'categoryId': '220'},
+  token: 'PARENT_TOKEN', // from SoftLink portal
+  referrerId: currentUser.id,
+);
+
+if (url != null) {
+  Share.share(url); // share via any app
+}
+```
+
+**Notes:**
+- Same values always return the same link (deduplication) ✅
+- Generated link inherits expiry from parent dynamic link ✅
+- `referrerId` is stored as `ref` param for referral tracking ✅
 
 ## SoftLinkDeepLink
 

@@ -1,0 +1,16 @@
+name: softlink_flutter_example
+description: Example app for softlink_flutter SDK.
+version: 1.0.0
+
+environment:
+  sdk: '^3.0.0'
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  softlink_flutter:
+    path: ../
+
+flutter:
+  uses-material-design: true

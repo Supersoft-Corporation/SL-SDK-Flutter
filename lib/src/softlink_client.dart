@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'models.dart';
 import 'device_info.dart';
@@ -49,5 +50,45 @@ class SoftLinkClient {
           )
           .timeout(const Duration(seconds: 10));
     } catch (_) {}
+  }
+
+  Future<String?> generateReferralLink({
+    required String screenKey,
+    required Map<String, String> values,
+    String? referrerId,
+    String? token,
+  }) async {
+    try {
+      final uri = token != null
+          ? Uri.parse('$baseUrl/api/runtime/link?token=$token')
+          : Uri.parse('$baseUrl/api/runtime/link');
+
+      final body = {
+        'screen': screenKey,
+        'values': {
+          ...values,
+          if (referrerId != null) 'ref': referrerId,
+        },
+      };
+
+      final response = await http
+          .post(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              'X-API-Key': apiKey,
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['url'] as String?;
+      }
+    } catch (e) {
+      debugPrint('SoftLink: generateReferralLink error: $e');
+    }
+    return null;
   }
 }
