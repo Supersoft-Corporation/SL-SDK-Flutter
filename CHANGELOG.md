@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.2
+
+* Published under verified publisher supersoft.com.pk
+* No code changes from 0.0.1
+
 ## 0.0.1
 
 * Initial public release
