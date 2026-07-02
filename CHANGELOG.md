@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.6
+
+* Updated `device_info_plus` constraint to `^13.2.0`
+* Added the Platform Support
+
 ## 0.0.5
 
 * Updated `device_info_plus` constraint to `^11.5.0`
