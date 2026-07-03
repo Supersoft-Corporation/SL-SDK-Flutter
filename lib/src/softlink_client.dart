@@ -3,12 +3,31 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'models.dart';
 import 'device_info.dart';
+import 'package:flutter/services.dart';
 
 class SoftLinkClient {
   final String baseUrl;
   final String apiKey;
 
   SoftLinkClient({required this.baseUrl, required this.apiKey});
+
+  static const _channel = MethodChannel('softlink_flutter');
+
+  static Future<String?> getInstallReferrer() async {
+    try {
+      return await _channel.invokeMethod<String>('getInstallReferrer');
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static Future<bool> registerSKAdNetwork() async {
+    try {
+      return await _channel.invokeMethod<bool>('registerSKAdNetwork') ?? false;
+    } catch (e) {
+      return false;
+    }
+  }
 
   Future<SoftLinkDeepLink?> resolveToken(String token) async {
     try {
@@ -25,11 +44,15 @@ class SoftLinkClient {
     return null;
   }
 
-  Future<SoftLinkDeepLink?> resolveDeferred() async {
+  Future<SoftLinkDeepLink?> resolveDeferred({String? referrer}) async {
     try {
       final fingerprint = await SoftLinkDeviceInfo.getDeviceFingerprint();
+      final queryParams = {
+        ...fingerprint,
+        if (referrer != null) 'referrer': referrer,
+      };
       final uri = Uri.parse('$baseUrl/api/links/resolve').replace(
-        queryParameters: fingerprint,
+        queryParameters: queryParams,
       );
       final response = await http.get(uri).timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
@@ -40,13 +63,17 @@ class SoftLinkClient {
     return null;
   }
 
-  Future<void> updateFingerprintDeviceId(String deviceId) async {
+  Future<void> updateFingerprintDeviceId(String deviceId,
+      {String? referrer}) async {
     try {
       await http
           .post(
             Uri.parse('$baseUrl/api/links/fingerprint/update'),
             headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'device_id': deviceId}),
+            body: jsonEncode({
+              'device_id': deviceId,
+              if (referrer != null) 'referrer': referrer,
+            }),
           )
           .timeout(const Duration(seconds: 10));
     } catch (_) {}
