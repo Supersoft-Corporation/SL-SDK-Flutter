@@ -1,6 +1,6 @@
 name: softlink_flutter
 description: "SoftLink Flutter SDK for deep linking, deferred deep linking, and install attribution."
-version: 0.0.6
+version: 0.0.7
 homepage: https://github.com/Supersoft-Corporation/SL-SDK-Flutter
 repository: https://github.com/Supersoft-Corporation/SL-SDK-Flutter
 
@@ -26,3 +26,10 @@ dev_dependencies:
   flutter_lints: ^5.0.0
 
 flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.supersoft.softlink_flutter
+        pluginClass: SoftlinkFlutterPlugin
+      ios:
+        pluginClass: SoftlinkFlutterPlugin
