@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.7
+
+* Updated the configuration to handle the `initial_uri` utilized twice
+* Added the `Google Referrer API` and the `SKAdNetwork` Support
+
 ## 0.0.6
 
 * Updated `device_info_plus` constraint to `^13.2.0`
