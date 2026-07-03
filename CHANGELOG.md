@@ -4,6 +4,7 @@
 
 * Updated `device_info_plus` constraint to `^13.2.0`
 * Added the Platform Support
+* Added the fallback URL, and made the URL field optional
 
 ## 0.0.5
 

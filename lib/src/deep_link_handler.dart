@@ -4,6 +4,7 @@ import 'package:app_links/app_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:softlink_flutter/src/device_info.dart';
 import 'package:softlink_flutter/src/models.dart';
+import 'package:softlink_flutter/src/native_bridge.dart';
 import 'softlink_client.dart';
 import 'storage.dart';
 
@@ -28,9 +29,7 @@ class SoftLinkDeepLinkHandler {
     await _subscription?.cancel();
     _subscription = _appLinks.uriLinkStream.listen((uri) {
       debugPrint('SoftLink: stream fired: $uri');
-      if (!_initialUriHandled &&
-          initialUri != null &&
-          uri.toString() == initialUri.toString()) {
+      if (initialUri != null && uri.toString() == initialUri.toString()) {
         debugPrint('SoftLink: stream ignored (same as initial)');
         return;
       }
@@ -71,6 +70,14 @@ class SoftLinkDeepLinkHandler {
     final token = uri.pathSegments.last;
     if (token.isEmpty) return;
 
+    // Skip if already handled in a previous session
+    final lastUri = SoftLinkStorage.getLastUri();
+    if (lastUri == token) {
+      debugPrint(
+          'SoftLink: token already handled in previous session, skipping: $token');
+      return;
+    }
+
     // Deduplicate — ignore same token within 2 seconds
     final now = DateTime.now();
     if (_lastHandledToken == token &&
@@ -100,11 +107,16 @@ class SoftLinkDeepLinkHandler {
   }
 
   Future<void> _checkDeferred() async {
+    // Register SKAdNetwork on iOS
+    await SoftLinkNativeBridge.registerSKAdNetwork();
+
+    // Get Play Install Referrer on Android
+    final referrer = await SoftLinkNativeBridge.getInstallReferrer();
     final deviceId = await SoftLinkDeviceInfo.getDeviceId();
     if (deviceId.isNotEmpty) {
-      await _client.updateFingerprintDeviceId(deviceId);
+      await _client.updateFingerprintDeviceId(deviceId, referrer: referrer);
     }
-    final deepLink = await _client.resolveDeferred();
+    final deepLink = await _client.resolveDeferred(referrer: referrer);
     if (deepLink != null) onDeepLink?.call(deepLink);
   }
 }
