@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.8
+
+* Fixed deep link re-triggering after first use by removing `_initialUriHandled` flag from stream check
+* Added HTTP 201 status code support alongside 200 for runtime link generation response
+* Fixed Android manifest: removed deprecated `package` attribute, added `queries` block for Play Install Referrer API support on Android 11+
+
 ## 0.0.7
 
 * Updated the configuration to handle the `initial_uri` utilized twice

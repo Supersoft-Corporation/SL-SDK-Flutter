@@ -15,7 +15,7 @@ Official Flutter SDK for [SoftLink](https://supersoftlink.com) — a deep link m
 
 ```yaml
 dependencies:
-  softlink_flutter: ^0.0.7
+  softlink_flutter: ^0.0.8
 ```
 
 ## Usage
