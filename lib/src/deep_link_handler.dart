@@ -70,14 +70,6 @@ class SoftLinkDeepLinkHandler {
     final token = uri.pathSegments.last;
     if (token.isEmpty) return;
 
-    // Skip if already handled in a previous session
-    final lastUri = SoftLinkStorage.getLastUri();
-    if (lastUri == token) {
-      debugPrint(
-          'SoftLink: token already handled in previous session, skipping: $token');
-      return;
-    }
-
     // Deduplicate — ignore same token within 2 seconds
     final now = DateTime.now();
     if (_lastHandledToken == token &&
