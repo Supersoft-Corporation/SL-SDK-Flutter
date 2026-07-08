@@ -29,11 +29,16 @@ class SoftLinkClient {
     }
   }
 
-  Future<SoftLinkDeepLink?> resolveToken(String token) async {
+  Future<SoftLinkDeepLink?> resolveToken(String token,
+      {String? utmSource}) async {
     try {
       final fingerprint = await SoftLinkDeviceInfo.getDeviceFingerprint();
+      final queryParams = {
+        ...fingerprint,
+        if (utmSource != null && utmSource.isNotEmpty) 'utm_source': utmSource,
+      };
       final uri = Uri.parse('$baseUrl/api/links/token/$token').replace(
-        queryParameters: fingerprint,
+        queryParameters: queryParams,
       );
       final response = await http.get(uri).timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
