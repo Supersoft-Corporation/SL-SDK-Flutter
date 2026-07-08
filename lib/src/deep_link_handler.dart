@@ -84,8 +84,11 @@ class SoftLinkDeepLinkHandler {
     if (_processingToken == token) return;
     _processingToken = token;
 
+    // Extract utm_source from URI
+    final utmSource = uri.queryParameters['utm_source'] ?? '';
+
     try {
-      final deepLink = await _client.resolveToken(token);
+      final deepLink = await _client.resolveToken(token, utmSource: utmSource);
       if (deepLink != null) {
         onDeepLink?.call(deepLink);
       } else {
