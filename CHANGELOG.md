@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.9
+
+* Pass utm_source from URI to resolveToken for accurate traffic source tracking via Universal Links
+
 ## 0.0.8
 
 * Fixed deep link re-triggering after first use by removing `_initialUriHandled` flag from stream check
