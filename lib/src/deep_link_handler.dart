@@ -29,7 +29,9 @@ class SoftLinkDeepLinkHandler {
     await _subscription?.cancel();
     _subscription = _appLinks.uriLinkStream.listen((uri) {
       debugPrint('SoftLink: stream fired: $uri');
-      if (initialUri != null && uri.toString() == initialUri.toString()) {
+      if (!_initialUriHandled &&
+          initialUri != null &&
+          uri.toString() == initialUri.toString()) {
         debugPrint('SoftLink: stream ignored (same as initial)');
         return;
       }
