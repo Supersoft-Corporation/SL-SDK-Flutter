@@ -1,6 +1,10 @@
-<manifest>
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
     <uses-permission android:name="com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE"/>
+
     <queries>
         <package android:name="com.android.vending"/>
     </queries>
+
 </manifest>
