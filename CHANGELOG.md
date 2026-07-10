@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.10
+
+* Fixed Universal Links not incrementing click count and app open count on subsequent app opens
+* Restored correct stream listener behavior from 0.0.6
+* Fixed the `AndroidManifest.xml`file to include the `xmlns:android`tag
+
 ## 0.0.9
 
 * Pass utm_source from URI to resolveToken for accurate traffic source tracking via Universal Links
