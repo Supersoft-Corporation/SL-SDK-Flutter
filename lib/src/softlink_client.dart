@@ -49,12 +49,14 @@ class SoftLinkClient {
     return null;
   }
 
-  Future<SoftLinkDeepLink?> resolveDeferred({String? referrer}) async {
+  Future<SoftLinkDeepLink?> resolveDeferred(
+      {String? referrer, String? deviceId}) async {
     try {
       final fingerprint = await SoftLinkDeviceInfo.getDeviceFingerprint();
       final queryParams = {
         ...fingerprint,
         if (referrer != null) 'referrer': referrer,
+        if (deviceId != null && deviceId.isNotEmpty) 'device_id': deviceId,
       };
       final uri = Uri.parse('$baseUrl/api/links/resolve').replace(
         queryParameters: queryParams,

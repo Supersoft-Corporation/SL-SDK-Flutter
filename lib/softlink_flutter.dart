@@ -42,6 +42,7 @@ class SoftLink {
     String baseUrl = 'https://api.supersoftlink.com',
     required String apiKey,
     OnSoftLinkDeepLink? onDeepLink,
+    String? idfa,
   }) async {
     _instance = SoftLink._();
     await SoftLinkStorage.init();
@@ -49,6 +50,7 @@ class SoftLink {
     _instance!._handler = SoftLinkDeepLinkHandler(
       client: _instance!._client,
       onDeepLink: onDeepLink,
+      idfa: idfa,
     );
     await _instance!._handler.init();
   }
