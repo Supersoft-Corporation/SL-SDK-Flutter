@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.11
+* Added `idfa` parameter to `SoftLink.init()` for iOS IDFA support
+* When IDFA is provided (ATT authorized), it takes priority over IDFV for deferred deep linking
+* Improved iOS deferred deep linking accuracy when user grants ATT permission
+
 ## 0.0.10
 
 * Fixed Universal Links not incrementing click count and app open count on subsequent app opens

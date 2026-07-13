@@ -11,6 +11,7 @@ import 'storage.dart';
 class SoftLinkDeepLinkHandler {
   final SoftLinkClient _client;
   final OnSoftLinkDeepLink? onDeepLink;
+  final String? idfa;
   final _appLinks = AppLinks();
   String? _processingToken;
   DateTime? _lastHandledTime;
@@ -21,6 +22,7 @@ class SoftLinkDeepLinkHandler {
   SoftLinkDeepLinkHandler({
     required SoftLinkClient client,
     this.onDeepLink,
+    this.idfa,
   }) : _client = client;
 
   Future<void> init() async {
@@ -109,11 +111,12 @@ class SoftLinkDeepLinkHandler {
 
     // Get Play Install Referrer on Android
     final referrer = await SoftLinkNativeBridge.getInstallReferrer();
-    final deviceId = await SoftLinkDeviceInfo.getDeviceId();
+    final deviceId = idfa ?? await SoftLinkDeviceInfo.getDeviceId();
     if (deviceId.isNotEmpty) {
       await _client.updateFingerprintDeviceId(deviceId, referrer: referrer);
     }
-    final deepLink = await _client.resolveDeferred(referrer: referrer);
+    final deepLink =
+        await _client.resolveDeferred(referrer: referrer, deviceId: deviceId);
     if (deepLink != null) onDeepLink?.call(deepLink);
   }
 }
