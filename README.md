@@ -69,8 +69,10 @@ final url = await SoftLink.generateReferralLink(
 if (url != null) {
   Share.share(url); // share via any app
 }
+```
 
-## Trigger Events
+
+### Trigger Events
 
 Trigger custom events defined in the SoftLink portal to track user actions tied to deep links.
 
