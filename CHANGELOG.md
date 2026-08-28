@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.0.12
+* Added `SoftLink.triggerEvent()` method for tracking custom events defined in SoftLink portal
+* Added `eventKey`, `linkToken`, `sequence`, `lastEventKey`, and `metadata` parameters to event trigger
+* Events are associated with deep link tokens for attribution tracking
+* Events without `linkToken` are tracked as organic
+* Added `SoftLinkEventName` class with standard event name constants
+* Added `SoftLinkConversionMetadata` class for structured conversion metadata
+* Updated README with Trigger Events documentation
+
+
 ## 0.0.11
 * Added `idfa` parameter to `SoftLink.init()` for iOS IDFA support
 * When IDFA is provided (ATT authorized), it takes priority over IDFV for deferred deep linking

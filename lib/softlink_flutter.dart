@@ -20,6 +20,24 @@ import 'src/deep_link_handler.dart';
 import 'src/storage.dart';
 import 'src/models.dart';
 
+/// Standard conversion event names for SoftLink tracking.
+/// Use [SoftLinkEventName.custom] for custom event names.
+class SoftLinkEventName {
+  static const String purchase = 'Purchase';
+  static const String booking = 'Booking';
+  static const String registration = 'Registration';
+  static const String subscription = 'Subscription';
+  static const String lead = 'Lead';
+  static const String addToCart = 'AddToCart';
+  static const String checkout = 'Checkout';
+  static const String download = 'Download';
+  static const String signUp = 'SignUp';
+  static const String login = 'Login';
+  static const String search = 'Search';
+  static const String viewContent = 'ViewContent';
+  static const String custom = 'Custom';
+}
+
 /// Main entry point for the SoftLink Flutter SDK.
 ///
 /// Call [SoftLink.init] once at app startup to initialize deep linking.
@@ -97,6 +115,72 @@ class SoftLink {
       values: values,
       referrerId: referrerId,
       token: token,
+    );
+  }
+
+  /// Tracks a conversion event for a deep link.
+  ///
+  /// - [token]: The deep link token received in [onDeepLink] callback
+  /// - [eventName]: Name of the conversion event (e.g. `Purchase`, `Booking`)
+  /// - [metadata]: Optional map of additional data (e.g. `{'amount': '150', 'currency': 'SAR'}`)
+  ///
+  /// Returns `true` if the conversion was tracked successfully.
+  ///
+  /// ```dart
+  /// await SoftLink.trackConversion(
+  ///   token: deepLink.token,
+  ///   eventName: 'Purchase',
+  ///   metadata: {'packageId': '1122', 'amount': '150'},
+  /// );
+  /// ```
+  static Future<bool> trackConversion({
+    required String token,
+    required String eventName,
+    SoftLinkConversionMetadata? metadata,
+  }) async {
+    assert(_instance != null,
+        'SoftLink not initialized. Call SoftLink.init() first.');
+    return _instance!._client.trackConversion(
+      token: token,
+      eventName: eventName,
+      metadata: metadata,
+    );
+  }
+
+  /// Triggers a custom event defined in the SoftLink portal.
+  ///
+  /// - [eventKey]: The event key (UPPERCASE_WITH_UNDERSCORES) defined in portal
+  /// - [linkToken]: Optional deep link token to associate this event with a link
+  /// - [sequence]: Optional sequence number defined by the developer
+  /// - [lastEventKey]: Optional previous event key fired before this one
+  /// - [metadata]: Optional event metadata matching the schema defined in portal
+  ///
+  /// Returns `true` if the event was triggered successfully.
+  ///
+  /// ```dart
+  /// await SoftLink.triggerEvent(
+  ///   eventKey: 'PRODUCT_PURCHASE',
+  ///   linkToken: deepLink.token,
+  ///   sequence: 1,
+  ///   lastEventKey: 'PRODUCT_DETAIL',
+  ///   metadata: {'productId': '123', 'purchaseDate': '2026-08-28'},
+  /// );
+  /// ```
+  static Future<bool> triggerEvent({
+    required String eventKey,
+    String? linkToken,
+    int? sequence,
+    String? lastEventKey,
+    Map<String, dynamic>? metadata,
+  }) async {
+    assert(_instance != null,
+        'SoftLink not initialized. Call SoftLink.init() first.');
+    return _instance!._client.triggerEvent(
+      eventKey: eventKey,
+      linkToken: linkToken,
+      sequence: sequence,
+      lastEventKey: lastEventKey,
+      metadata: metadata,
     );
   }
 }
