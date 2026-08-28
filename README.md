@@ -15,7 +15,7 @@ Official Flutter SDK for [SoftLink](https://supersoftlink.com) — a deep link m
 
 ```yaml
 dependencies:
-  softlink_flutter: ^0.0.11
+  softlink_flutter: ^0.0.12
 ```
 
 ## Usage
@@ -69,21 +69,75 @@ final url = await SoftLink.generateReferralLink(
 if (url != null) {
   Share.share(url); // share via any app
 }
+
+## Trigger Events
+
+Trigger custom events defined in the SoftLink portal to track user actions tied to deep links.
+
+### Step 1 — Create an event in SoftLink portal
+
+Go to your app → Events → Create event with a key (e.g. `PURCHASE`) and define metadata fields.
+
+### Step 2 — Save the token when deep link resolves
+
+```dart
+String? _deepLinkToken;
+
+SoftLink.init(
+  baseUrl: 'https://api.supersoftlink.com',
+  apiKey: 'sl_your_api_key',
+  onDeepLink: (deepLink) {
+    if (deepLink == null) return;
+    _deepLinkToken = deepLink.token; // save token
+    navigateTo(deepLink.screen, deepLink.params);
+  },
+);
 ```
 
-**Notes:**
-- Same values always return the same link (deduplication) ✅
-- Generated link inherits expiry from parent dynamic link ✅
-- `referrerId` is stored as `ref` param for referral tracking ✅
+### Step 3 — Trigger event when user completes action
 
-## SoftLinkDeepLink
+```dart
+await SoftLink.triggerEvent(
+  eventKey: 'PURCHASE',          // must match key defined in portal
+  linkToken: _deepLinkToken,     // associates event with the deep link
+  sequence: 1,                   // optional: order of event in user journey
+  lastEventKey: 'VIEW_ITEM',     // optional: previous event key
+  metadata: {
+    'item_id': 'item-001',
+    'amount': '99.00',
+    'currency': 'USD',
+  },
+);
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `token` | `String` | Unique link token |
-| `screen` | `String` | Screen key (e.g. `DOCTOR_PROFILE`) |
-| `params` | `Map<String, dynamic>` | Link parameters |
-| `linkType` | `String` | `static` or `dynamic` |
+// Clear token after event
+_deepLinkToken = null;
+```
+
+### Step 4 — Clear token when screen is disposed
+
+```dart
+@override
+void dispose() {
+  _deepLinkToken = null; // clear if user leaves without completing action
+  super.dispose();
+}
+```
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `eventKey` | `String` | ✅ Yes | Event key defined in SoftLink portal (UPPERCASE_WITH_UNDERSCORES) |
+| `linkToken` | `String?` | No | Deep link token to associate event with a link. If not passed, event is tracked as organic |
+| `sequence` | `int?` | No | Order of this event in the user journey, defined by developer |
+| `lastEventKey` | `String?` | No | Previous event key fired before this one |
+| `metadata` | `Map<String, dynamic>?` | No | Key-value pairs matching the metadata schema defined in portal |
+
+### Notes
+- Event key must exist in SoftLink portal and be set to **Active** status ✅
+- If `linkToken` is not passed, event is counted as **organic** (no link attribution) ✅
+- Metadata fields should match the schema defined in the portal ✅
+- Events are visible in SoftLink portal under app → Events → Analytics ✅
 
 ## Android Setup
 

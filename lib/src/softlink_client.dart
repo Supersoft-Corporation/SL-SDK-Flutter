@@ -125,4 +125,61 @@ class SoftLinkClient {
     }
     return null;
   }
+
+  Future<bool> trackConversion({
+    required String token,
+    required String eventName,
+    SoftLinkConversionMetadata? metadata,
+  }) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/api/links/$token/conversion'),
+            headers: {
+              'Content-Type': 'application/json',
+              'X-API-Key': apiKey,
+            },
+            body: jsonEncode({
+              'event_name': eventName,
+              if (metadata != null) 'metadata': metadata.toMap(),
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      debugPrint('SoftLink: trackConversion error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> triggerEvent({
+    required String eventKey,
+    String? linkToken,
+    int? sequence,
+    String? lastEventKey,
+    Map<String, dynamic>? metadata,
+  }) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/api/events/trigger'),
+            headers: {
+              'Content-Type': 'application/json',
+              'X-API-Key': apiKey,
+            },
+            body: jsonEncode({
+              'event_key': eventKey,
+              if (linkToken != null) 'link_token': linkToken,
+              if (sequence != null) 'sequence': sequence,
+              if (lastEventKey != null) 'last_event_key': lastEventKey,
+              if (metadata != null) 'metadata': metadata,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      debugPrint('SoftLink: triggerEvent error: $e');
+      return false;
+    }
+  }
 }
