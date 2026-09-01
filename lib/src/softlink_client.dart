@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'models.dart';
@@ -126,6 +127,86 @@ class SoftLinkClient {
     return null;
   }
 
+  Future<bool> setUserData({
+    String? email,
+    String? phone,
+    String? maid,
+    required String deviceId,
+  }) async {
+    try {
+      String? hashedEmail;
+      String? hashedPhone;
+
+      if (email != null && email.isNotEmpty) {
+        hashedEmail = _sha256(email.toLowerCase().trim());
+      }
+      if (phone != null && phone.isNotEmpty) {
+        // normalize phone — remove spaces, dashes, keep + prefix
+        final normalized = phone.replaceAll(RegExp(r'[\s\-()]'), '');
+        hashedPhone = _sha256(normalized);
+      }
+
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/api/links/user-data'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'device_id': deviceId,
+              if (hashedEmail != null) 'hashed_email': hashedEmail,
+              if (hashedPhone != null) 'hashed_phone': hashedPhone,
+              if (maid != null) 'maid': maid,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      debugPrint('SoftLink: setUserData error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> reportAppOpen({
+    required String deviceId,
+    required String platform,
+    String? osVersion,
+    String? deviceModel,
+    int? screenWidth,
+    int? screenHeight,
+    String? locale,
+  }) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/api/links/app-open'),
+            headers: {
+              'Content-Type': 'application/json',
+              'X-API-Key': apiKey,
+            },
+            body: jsonEncode({
+              'device_id': deviceId,
+              'platform': platform,
+              if (osVersion != null) 'os_version': osVersion,
+              if (deviceModel != null) 'device_model': deviceModel,
+              if (screenWidth != null) 'screen_width': screenWidth,
+              if (screenHeight != null) 'screen_height': screenHeight,
+              if (locale != null) 'locale': locale,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      debugPrint('SoftLink: reportAppOpen error: $e');
+      return false;
+    }
+  }
+
+  String _sha256(String input) {
+    // SHA256 using dart:convert
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
   Future<bool> trackConversion({
     required String token,
     required String eventName,
@@ -180,6 +261,14 @@ class SoftLinkClient {
     } catch (e) {
       debugPrint('SoftLink: triggerEvent error: $e');
       return false;
+    }
+  }
+
+  static Future<String?> getGAID() async {
+    try {
+      return await _channel.invokeMethod<String>('getGAID');
+    } catch (e) {
+      return null;
     }
   }
 }

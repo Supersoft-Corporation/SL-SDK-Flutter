@@ -141,6 +141,62 @@ void dispose() {
 - Metadata fields should match the schema defined in the portal ✅
 - Events are visible in SoftLink portal under app → Events → Analytics ✅
 
+
+## Set User Data (Signal Quality)
+
+Call `SoftLink.setUserData()` after user logs in to improve ad platform signal quality. Email and phone are SHA256 hashed before sending — never sent in plain text.
+
+```dart
+// Call after user logs in
+await SoftLink.setUserData(
+  email: 'user@example.com',   // will be SHA256 hashed
+  phone: '+1234567890',         // will be SHA256 hashed
+);
+```
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `email` | `String?` | No | User email — automatically lowercased, trimmed and SHA256 hashed |
+| `phone` | `String?` | No | User phone number — spaces and dashes removed, then SHA256 hashed |
+| `maid` | `String?` | No | Mobile Advertising ID (GAID on Android, IDFA on iOS) |
+
+### Notes
+- Call this once after user logs in — data is stored server-side against device ID ✅
+- Either `email` or `phone` can be passed independently ✅
+- Data is used to improve Snapchat, Meta and TikTok CAPI signal quality ✅
+- Never pass pre-hashed values — SDK handles hashing automatically ✅
+
+---
+
+## App Open Tracking
+
+The SDK automatically calls `reportAppOpen()` on every `SoftLink.init()` — no additional code needed.
+
+This fires an `APP_OPEN` event to connected ad platforms (Snapchat, Meta, TikTok) with real device info including OS version, device model and locale for improved signal quality.
+
+```dart
+// This is called automatically on init — no extra code needed
+await SoftLink.init(
+  baseUrl: 'https://your-softlink-backend.com',
+  apiKey: 'sl_your_api_key',
+  onDeepLink: (deepLink) { ... },
+);
+// APP_OPEN event fires automatically ✅
+```
+
+### What is sent
+- Device platform (Android/iOS)
+- OS version
+- Device model
+- Locale
+- Device ID
+- Hashed email/phone (if previously set via `setUserData()`)
+- MAID/IDFA (if available)
+
+---
+
 ## Android Setup
 
 Add to `android/app/src/main/AndroidManifest.xml` inside `<activity>`:

@@ -15,6 +15,10 @@ library softlink_flutter;
 
 export 'src/models.dart';
 
+import 'dart:io';
+
+import 'package:softlink_flutter/src/device_info.dart';
+
 import 'src/softlink_client.dart';
 import 'src/deep_link_handler.dart';
 import 'src/storage.dart';
@@ -48,6 +52,22 @@ class SoftLink {
 
   SoftLink._();
 
+  Future<void> _reportAppOpen() async {
+    try {
+      final deviceId = await SoftLinkDeviceInfo.getDeviceId();
+      final details = await SoftLinkDeviceInfo.getDeviceDetails();
+      await _client.reportAppOpen(
+        deviceId: deviceId,
+        platform: details['platform'] ?? 'android',
+        osVersion: details['os_version'],
+        deviceModel: details['device_model'],
+        screenWidth: details['screen_width'],
+        screenHeight: details['screen_height'],
+        locale: details['locale'],
+      );
+    } catch (_) {}
+  }
+
   /// Initializes the SoftLink SDK.
   ///
   /// Must be called before any other SoftLink methods.
@@ -71,6 +91,21 @@ class SoftLink {
       idfa: idfa,
     );
     await _instance!._handler.init();
+    // Get GAID on Android for ad platform signal quality
+    if (Platform.isAndroid) {
+      SoftLinkClient.getGAID().then((gaid) {
+        if (gaid != null) {
+          SoftLinkDeviceInfo.getDeviceId().then((deviceId) {
+            _instance!._client.setUserData(
+              deviceId: deviceId,
+              maid: gaid,
+            );
+          });
+        }
+      }).catchError((_) {});
+    }
+    // Report app open for ad platform tracking
+    _instance!._reportAppOpen();
   }
 
   /// Returns the current [SoftLink] instance.
@@ -181,6 +216,33 @@ class SoftLink {
       sequence: sequence,
       lastEventKey: lastEventKey,
       metadata: metadata,
+    );
+  }
+
+  /// Sets user data for improved ad platform signal quality.
+  ///
+  /// Call this after user logs in. Email and phone are SHA256 hashed
+  /// before sending — never sent in plain text.
+  ///
+  /// ```dart
+  /// await SoftLink.setUserData(
+  ///   email: 'user@example.com',
+  ///   phone: '+1234567890',
+  /// );
+  /// ```
+  static Future<bool> setUserData({
+    String? email,
+    String? phone,
+    String? maid,
+  }) async {
+    assert(_instance != null,
+        'SoftLink not initialized. Call SoftLink.init() first.');
+    final deviceId = await SoftLinkDeviceInfo.getDeviceId();
+    return _instance!._client.setUserData(
+      email: email,
+      phone: phone,
+      maid: maid,
+      deviceId: deviceId,
     );
   }
 }
