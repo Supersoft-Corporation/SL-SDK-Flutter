@@ -6,7 +6,7 @@ Official Flutter SDK for [SoftLink](https://supersoftlink.com) — a deep link m
 
 - 🔗 Deep linking (when app is already installed)
 - 📦 Deferred deep linking (when app is not installed)
-- 📱 Device-level install attribution (Android ID / iOS IDFV)
+- 📱 Device-level install attribution (GAID on Android / IDFA + IDFV on iOS)
 - 🎯 Snapchat CAPI integration support
 - 🔄 Automatic duplicate URI handling
 - 💾 Persistent storage via GetStorage
@@ -283,6 +283,8 @@ By default, SoftLink uses IDFV (Identifier for Vendor) for iOS deferred deep lin
 
 - **IDFV** — available without permission but resets when all vendor apps are uninstalled
 - **IDFA** — persistent unique device identifier, works even when IP changes (CGNAT), much more reliable for install attribution
+
+**Note for Android:** GAID (Google Advertising ID) is collected automatically by the SDK — no additional setup required. ✅
 
 ### Implementation
 
