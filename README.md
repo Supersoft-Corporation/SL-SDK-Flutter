@@ -146,6 +146,8 @@ void dispose() {
 
 Call `SoftLink.setUserData()` after user logs in to improve ad platform signal quality. Email and phone are SHA256 hashed before sending — never sent in plain text.
 
+**Note:** GAID (Android) is collected automatically by the SDK on init. IDFA (iOS) is passed via `SoftLink.init(idfa: idfa)` after ATT permission. You do not need to pass MAID manually.
+
 ```dart
 // Call after user logs in
 await SoftLink.setUserData(
@@ -160,11 +162,12 @@ await SoftLink.setUserData(
 |-----------|------|----------|-------------|
 | `email` | `String?` | No | User email — automatically lowercased, trimmed and SHA256 hashed |
 | `phone` | `String?` | No | User phone number — spaces and dashes removed, then SHA256 hashed |
-| `maid` | `String?` | No | Mobile Advertising ID (GAID on Android, IDFA on iOS) |
+| `maid` | `String?` | No | Optional — only needed if you manage MAID manually. GAID (Android) and IDFA (iOS via ATT) are handled automatically by the SDK |
 
 ### Notes
-- Call this once after user logs in — data is stored server-side against device ID ✅
-- Either `email` or `phone` can be passed independently ✅
+- Call this once after user logs in ✅
+- GAID on Android is automatically collected on `SoftLink.init()` ✅
+- IDFA on iOS is passed via `SoftLink.init(idfa: idfa)` after ATT permission ✅
 - Data is used to improve Snapchat, Meta and TikTok CAPI signal quality ✅
 - Never pass pre-hashed values — SDK handles hashing automatically ✅
 
