@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'storage.dart';
 
@@ -54,5 +55,34 @@ class SoftLinkDeviceInfo {
     } catch (_) {}
 
     return fingerprint;
+  }
+
+  static Future<Map<String, dynamic>> getDeviceDetails() async {
+    final details = <String, dynamic>{};
+    try {
+      final view = PlatformDispatcher.instance.views.firstOrNull;
+      if (view != null) {
+        final pixelRatio = view.devicePixelRatio;
+        final screenWidth = (view.physicalSize.width / pixelRatio).round();
+        final screenHeight = (view.physicalSize.height / pixelRatio).round();
+        details['screen_width'] = screenWidth;
+        details['screen_height'] = screenHeight;
+      }
+
+      if (Platform.isAndroid) {
+        final info = await _plugin.androidInfo;
+        details['platform'] = 'android';
+        details['os_version'] = info.version.release;
+        details['device_model'] = '${info.brand} ${info.model}';
+        details['locale'] = Platform.localeName;
+      } else if (Platform.isIOS) {
+        final info = await _plugin.iosInfo;
+        details['platform'] = 'ios';
+        details['os_version'] = info.systemVersion;
+        details['device_model'] = info.model;
+        details['locale'] = Platform.localeName;
+      }
+    } catch (_) {}
+    return details;
   }
 }
