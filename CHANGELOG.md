@@ -7,6 +7,10 @@
 * Events without `linkToken` are tracked as organic
 * Added `SoftLinkEventName` class with standard event name constants
 * Added `SoftLinkConversionMetadata` class for structured conversion metadata
+* Added `SoftLink.setUserData()` method for improved ad platform signal quality — email and phone are SHA256 hashed before sending, never in plain text
+* Added automatic `reportAppOpen()` call on SDK initialization for APP_OPEN event tracking on ad platforms
+* Added `getDeviceDetails()` to capture real device info (OS version, device model, locale) for improved Snapchat signal quality
+* Added `crypto` dependency for SHA256 hashing of user data
 * Updated README with Trigger Events documentation
 
 

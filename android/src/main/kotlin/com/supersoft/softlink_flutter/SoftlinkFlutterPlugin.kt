@@ -1,10 +1,13 @@
 package com.supersoft.softlink_flutter
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import androidx.annotation.NonNull
 import com.android.installreferrer.api.InstallReferrerClient
 import com.android.installreferrer.api.InstallReferrerStateListener
 import com.android.installreferrer.api.ReferrerDetails
+import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -24,8 +27,25 @@ class SoftlinkFlutterPlugin : FlutterPlugin, MethodCallHandler {
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         when (call.method) {
             "getInstallReferrer" -> getInstallReferrer(result)
+            "getGAID" -> getGAID(result)
             else -> result.notImplemented()
         }
+    }
+
+    private fun getGAID(result: Result) {
+        Thread {
+            try {
+                val adInfo = AdvertisingIdClient.getAdvertisingIdInfo(context)
+                if (adInfo.isLimitAdTrackingEnabled) {
+                    Handler(Looper.getMainLooper()).post { result.success(null) }
+                } else {
+                    val gaid = adInfo.id
+                    Handler(Looper.getMainLooper()).post { result.success(gaid) }
+                }
+            } catch (e: Exception) {
+                Handler(Looper.getMainLooper()).post { result.success(null) }
+            }
+        }.start()
     }
 
     private fun getInstallReferrer(result: Result) {
