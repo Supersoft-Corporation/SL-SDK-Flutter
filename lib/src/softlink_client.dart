@@ -72,7 +72,7 @@ class SoftLinkClient {
   }
 
   Future<void> updateFingerprintDeviceId(String deviceId,
-      {String? referrer}) async {
+      {String? referrer, String? maid}) async {
     try {
       await http
           .post(
@@ -81,6 +81,7 @@ class SoftLinkClient {
             body: jsonEncode({
               'device_id': deviceId,
               if (referrer != null) 'referrer': referrer,
+              if (maid != null) 'maid': maid, // ← add maid
             }),
           )
           .timeout(const Duration(seconds: 10));
