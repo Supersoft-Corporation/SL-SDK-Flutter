@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  softlink_flutter: ^0.0.11
+  softlink_flutter: ^0.0.13
 
 flutter:
   uses-material-design: true

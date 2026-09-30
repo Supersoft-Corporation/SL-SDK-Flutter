@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -255,6 +256,7 @@ class SoftLinkClient {
               if (sequence != null) 'sequence': sequence,
               if (lastEventKey != null) 'last_event_key': lastEventKey,
               if (metadata != null) 'metadata': metadata,
+              'platform': Platform.isIOS ? 'ios' : 'android',
             }),
           )
           .timeout(const Duration(seconds: 10));
