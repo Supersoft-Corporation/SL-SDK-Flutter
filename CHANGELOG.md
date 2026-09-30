@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.13
+* Added the platform info to enhance the analytics of an event
+
+
 ## 0.0.12
 * Added `SoftLink.triggerEvent()` method for tracking custom events defined in SoftLink portal
 * Added `eventKey`, `linkToken`, `sequence`, `lastEventKey`, and `metadata` parameters to event trigger
