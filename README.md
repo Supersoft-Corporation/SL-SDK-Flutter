@@ -230,6 +230,8 @@ override fun onNewIntent(intent: Intent) {
 
 ## iOS Setup
 
+Supports both Swift Package Manager and CocoaPods. Requires Flutter 3.41+ and iOS 12.0+.
+
 Add to `Runner.entitlements`:
 
 ```xml
