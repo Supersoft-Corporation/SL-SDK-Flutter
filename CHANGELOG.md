@@ -3,6 +3,8 @@
 ## 0.1.0
 * Added Swift Package Manager support for iOS (CocoaPods is still supported)
 * Added an iOS privacy manifest (`PrivacyInfo.xcprivacy`)
+* Fixed Android `device_id`: it was the OS Build ID (shared by devices on the same firmware). It is now a unique app-generated UUID, stored locally
+* Existing Android installs get a new `device_id` after updating
 * Raised the minimum versions to Flutter 3.41 and Dart 3.11, which SwiftPM's `FlutterFramework` dependency requires
 
 ## 0.0.13

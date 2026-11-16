@@ -2,23 +2,46 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'storage.dart';
+import 'dart:math';
 
 class SoftLinkDeviceInfo {
   static final _plugin = DeviceInfoPlugin();
 
+  static String? _memoryId;
+  static final _uuidPattern = RegExp(
+    r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+  );
+
+  static String _generateUuid() {
+    final r = Random.secure();
+    final b = List<int>.generate(16, (_) => r.nextInt(256));
+    b[6] = (b[6] & 0x0f) | 0x40;
+    b[8] = (b[8] & 0x3f) | 0x80;
+    final h = b.map((x) => x.toRadixString(16).padLeft(2, '0')).join();
+    return '${h.substring(0, 8)}-${h.substring(8, 12)}-${h.substring(12, 16)}-${h.substring(16, 20)}-${h.substring(20)}';
+  }
+
   static Future<String> getDeviceId() async {
-    // Return cached device ID if available
     final cached = SoftLinkStorage.getDeviceId();
+
+    if (Platform.isAndroid) {
+      // Old SDK versions cached the Build ID here; anything that is not a UUID is replaced.
+      if (_memoryId != null) return _memoryId!;
+      if (cached != null && _uuidPattern.hasMatch(cached)) {
+        _memoryId = cached;
+        return cached;
+      }
+      final id = _generateUuid();
+      _memoryId = id;
+      await SoftLinkStorage.setDeviceId(id);
+      return id;
+    }
+
     if (cached != null && cached.isNotEmpty) return cached;
 
     String deviceId = '';
-
     try {
-      if (Platform.isAndroid) {
-        final info = await _plugin.androidInfo;
-        // Use Android ID as device identifier
-        deviceId = info.id;
-      } else if (Platform.isIOS) {
+      if (Platform.isIOS) {
         final info = await _plugin.iosInfo;
         // Use IDFV (no permission needed)
         deviceId = info.identifierForVendor ?? '';
@@ -44,7 +67,7 @@ class SoftLinkDeviceInfo {
         fingerprint['model'] = info.model;
         fingerprint['brand'] = info.brand;
         fingerprint['os_version'] = info.version.release;
-        fingerprint['device_id'] = info.id;
+        fingerprint['device_id'] = await getDeviceId();
       } else if (Platform.isIOS) {
         final info = await _plugin.iosInfo;
         fingerprint['platform'] = 'ios';
