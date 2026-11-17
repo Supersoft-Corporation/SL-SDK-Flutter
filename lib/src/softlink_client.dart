@@ -31,17 +31,19 @@ class SoftLinkClient {
     }
   }
 
-  Future<SoftLinkDeepLink?> resolveToken(String token,
-      {String? utmSource}) async {
+  Future<SoftLinkDeepLink?> resolveToken(
+    String token, {
+    String? utmSource,
+  }) async {
     try {
       final fingerprint = await SoftLinkDeviceInfo.getDeviceFingerprint();
       final queryParams = {
         ...fingerprint,
         if (utmSource != null && utmSource.isNotEmpty) 'utm_source': utmSource,
       };
-      final uri = Uri.parse('$baseUrl/api/links/token/$token').replace(
-        queryParameters: queryParams,
-      );
+      final uri = Uri.parse(
+        '$baseUrl/api/links/token/$token',
+      ).replace(queryParameters: queryParams);
       final response = await http.get(uri).timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -51,8 +53,10 @@ class SoftLinkClient {
     return null;
   }
 
-  Future<SoftLinkDeepLink?> resolveDeferred(
-      {String? referrer, String? deviceId}) async {
+  Future<SoftLinkDeepLink?> resolveDeferred({
+    String? referrer,
+    String? deviceId,
+  }) async {
     try {
       final fingerprint = await SoftLinkDeviceInfo.getDeviceFingerprint();
       final queryParams = {
@@ -60,9 +64,9 @@ class SoftLinkClient {
         if (referrer != null) 'referrer': referrer,
         if (deviceId != null && deviceId.isNotEmpty) 'device_id': deviceId,
       };
-      final uri = Uri.parse('$baseUrl/api/links/resolve').replace(
-        queryParameters: queryParams,
-      );
+      final uri = Uri.parse(
+        '$baseUrl/api/links/resolve',
+      ).replace(queryParameters: queryParams);
       final response = await http.get(uri).timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -72,9 +76,13 @@ class SoftLinkClient {
     return null;
   }
 
-  Future<void> updateFingerprintDeviceId(String deviceId,
-      {String? referrer, String? maid}) async {
+  Future<void> updateFingerprintDeviceId(
+    String deviceId, {
+    String? referrer,
+    String? maid,
+  }) async {
     try {
+      final details = await SoftLinkDeviceInfo.getDeviceDetails();
       await http
           .post(
             Uri.parse('$baseUrl/api/links/fingerprint/update'),
@@ -82,7 +90,11 @@ class SoftLinkClient {
             body: jsonEncode({
               'device_id': deviceId,
               if (referrer != null) 'referrer': referrer,
-              if (maid != null) 'maid': maid, // ← add maid
+              if (maid != null) 'maid': maid,
+              ...{
+                for (final k in _deviceDetailKeys)
+                  if (details[k] != null) k: details[k],
+              },
             }),
           )
           .timeout(const Duration(seconds: 10));
@@ -102,19 +114,13 @@ class SoftLinkClient {
 
       final body = {
         'screen': screenKey,
-        'values': {
-          ...values,
-          if (referrerId != null) 'ref': referrerId,
-        },
+        'values': {...values, if (referrerId != null) 'ref': referrerId},
       };
 
       final response = await http
           .post(
             uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'X-API-Key': apiKey,
-            },
+            headers: {'Content-Type': 'application/json', 'X-API-Key': apiKey},
             body: jsonEncode(body),
           )
           .timeout(const Duration(seconds: 10));
@@ -133,6 +139,7 @@ class SoftLinkClient {
     String? email,
     String? phone,
     String? maid,
+    Map<String, dynamic>? userData,
     required String deviceId,
   }) async {
     try {
@@ -148,6 +155,8 @@ class SoftLinkClient {
         hashedPhone = _sha256(normalized);
       }
 
+      final extra = _buildUserData(userData);
+
       final response = await http
           .post(
             Uri.parse('$baseUrl/api/links/user-data'),
@@ -157,6 +166,7 @@ class SoftLinkClient {
               if (hashedEmail != null) 'hashed_email': hashedEmail,
               if (hashedPhone != null) 'hashed_phone': hashedPhone,
               if (maid != null) 'maid': maid,
+              if (extra.isNotEmpty) 'user_data': extra,
             }),
           )
           .timeout(const Duration(seconds: 10));
@@ -172,6 +182,8 @@ class SoftLinkClient {
     required String platform,
     String? osVersion,
     String? deviceModel,
+    String? deviceBrand,
+    String? userAgent,
     int? screenWidth,
     int? screenHeight,
     String? locale,
@@ -180,15 +192,14 @@ class SoftLinkClient {
       final response = await http
           .post(
             Uri.parse('$baseUrl/api/links/app-open'),
-            headers: {
-              'Content-Type': 'application/json',
-              'X-API-Key': apiKey,
-            },
+            headers: {'Content-Type': 'application/json', 'X-API-Key': apiKey},
             body: jsonEncode({
               'device_id': deviceId,
               'platform': platform,
               if (osVersion != null) 'os_version': osVersion,
               if (deviceModel != null) 'device_model': deviceModel,
+              if (deviceBrand != null) 'device_brand': deviceBrand,
+              if (userAgent != null) 'user_agent': userAgent,
               if (screenWidth != null) 'screen_width': screenWidth,
               if (screenHeight != null) 'screen_height': screenHeight,
               if (locale != null) 'locale': locale,
@@ -209,6 +220,48 @@ class SoftLinkClient {
     return digest.toString();
   }
 
+  static const _deviceDetailKeys = [
+    'platform',
+    'os_version',
+    'device_model',
+    'device_brand',
+    'screen_width',
+    'screen_height',
+    'locale',
+    'user_agent',
+  ];
+
+  // Keys the SDK hashes (SHA-256, trimmed + lowercased) before sending.
+  // Matching ignores case and underscores: first_name, firstName and FIRSTNAME all work.
+  static const _hashedUserDataKeys = {
+    'firstname': 'firstName',
+    'lastname': 'lastName',
+    'city': 'city',
+    'state': 'state',
+    'zip': 'zip',
+    'country': 'country',
+    'gender': 'gender',
+    'dob': 'dob',
+  };
+
+  Map<String, dynamic> _buildUserData(Map<String, dynamic>? input) {
+    final out = <String, dynamic>{};
+    if (input == null) return out;
+    input.forEach((key, value) {
+      if (value == null) return;
+      final canonical =
+          _hashedUserDataKeys[key.toLowerCase().replaceAll('_', '')];
+      if (canonical != null) {
+        final text = value.toString().trim().toLowerCase();
+        if (text.isNotEmpty) out[canonical] = _sha256(text);
+      } else {
+        if (value is String && value.trim().isEmpty) return;
+        out[key] = value;
+      }
+    });
+    return out;
+  }
+
   Future<bool> trackConversion({
     required String token,
     required String eventName,
@@ -218,10 +271,7 @@ class SoftLinkClient {
       final response = await http
           .post(
             Uri.parse('$baseUrl/api/links/$token/conversion'),
-            headers: {
-              'Content-Type': 'application/json',
-              'X-API-Key': apiKey,
-            },
+            headers: {'Content-Type': 'application/json', 'X-API-Key': apiKey},
             body: jsonEncode({
               'event_name': eventName,
               if (metadata != null) 'metadata': metadata.toMap(),
@@ -246,10 +296,7 @@ class SoftLinkClient {
       final response = await http
           .post(
             Uri.parse('$baseUrl/api/events/trigger'),
-            headers: {
-              'Content-Type': 'application/json',
-              'X-API-Key': apiKey,
-            },
+            headers: {'Content-Type': 'application/json', 'X-API-Key': apiKey},
             body: jsonEncode({
               'event_key': eventKey,
               if (linkToken != null) 'link_token': linkToken,

@@ -96,14 +96,27 @@ class SoftLinkDeviceInfo {
         final info = await _plugin.androidInfo;
         details['platform'] = 'android';
         details['os_version'] = info.version.release;
-        details['device_model'] = '${info.brand} ${info.model}';
+        details['device_model'] = info.model;
+        details['device_brand'] = info.brand;
         details['locale'] = Platform.localeName;
+        details['user_agent'] =
+            'Dalvik/2.1.0 (Linux; U; Android ${info.version.release}; ${info.model} Build/${info.id})';
       } else if (Platform.isIOS) {
         final info = await _plugin.iosInfo;
+        final machine = info.utsname.machine.toString();
+        final isIpad = info.model.toLowerCase().contains('ipad');
+        final osUnderscored = info.systemVersion.replaceAll('.', '_');
         details['platform'] = 'ios';
         details['os_version'] = info.systemVersion;
-        details['device_model'] = info.model;
+        // Real identifier (e.g. iPhone15,2); falls back to the generic model on simulators
+        details['device_model'] =
+            (machine.startsWith('iPhone') || machine.startsWith('iPad'))
+            ? machine
+            : info.model;
         details['locale'] = Platform.localeName;
+        details['user_agent'] = isIpad
+            ? 'Mozilla/5.0 (iPad; CPU OS $osUnderscored like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148'
+            : 'Mozilla/5.0 (iPhone; CPU iPhone OS $osUnderscored like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148';
       }
     } catch (_) {}
     return details;

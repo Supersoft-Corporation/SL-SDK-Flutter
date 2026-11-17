@@ -182,7 +182,7 @@ This fires an `APP_OPEN` event to connected ad platforms (Snapchat, Meta, TikTok
 ```dart
 // This is called automatically on init — no extra code needed
 await SoftLink.init(
-  baseUrl: 'https://your-softlink-backend.com',
+  baseUrl: 'https://api.supersoftlink.com',
   apiKey: 'sl_your_api_key',
   onDeepLink: (deepLink) { ... },
 );
@@ -335,7 +335,7 @@ void initState() {
     }
 
     await SoftLink.init(
-      baseUrl: 'https://your-softlink-backend.com',
+      baseUrl: 'https://api.supersoftlink.com',
       apiKey: 'sl_your_api_key',
       idfa: idfa, // pass IDFA when available
       onDeepLink: (deepLink) {

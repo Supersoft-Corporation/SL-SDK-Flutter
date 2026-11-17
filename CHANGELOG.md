@@ -6,6 +6,10 @@
 * Fixed Android `device_id`: it was the OS Build ID (shared by devices on the same firmware). It is now a unique app-generated UUID, stored locally
 * Existing Android installs get a new `device_id` after updating
 * Raised the minimum versions to Flutter 3.41 and Dart 3.11, which SwiftPM's `FlutterFramework` dependency requires
+* `SoftLink.setUserData()` now accepts `userData` (`Map<String, dynamic>`): `firstName`, `lastName`, `city`, `state`, `zip`, `country`, `gender`, `dob` are SHA256 hashed; other keys are sent as-is
+* Deprecated the `maid` parameter of `SoftLink.setUserData()`: the SDK now reads the advertising ID itself (Android GAID, iOS IDFA passed to `init`)
+* Install (`fingerprint/update`) and app-open events now send device model, brand, OS version, locale, screen size and a device user agent
+* Android `device_model` is now the model only (e.g. `Pixel 7`), with the brand sent separately as `device_brand`; iOS sends the hardware identifier (e.g. `iPhone15,2`)
 
 ## 0.0.13
 * Added the platform info to enhance the analytics of an event

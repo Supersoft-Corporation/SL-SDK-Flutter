@@ -21,7 +21,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     SoftLink.init(
-      baseUrl: 'https://api-link.supersoft.com.pk',
+      baseUrl: 'https://api.supersoftlink.com',
       apiKey: 'sl_your_api_key_here',
       onDeepLink: (deepLink) {
         if (deepLink == null) return;

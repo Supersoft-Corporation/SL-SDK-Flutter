@@ -11,7 +11,7 @@
 ///   },
 /// );
 /// ```
-library softlink_flutter;
+library;
 
 export 'src/models.dart';
 
@@ -49,6 +49,7 @@ class SoftLink {
   static SoftLink? _instance;
   late final SoftLinkClient _client;
   late final SoftLinkDeepLinkHandler _handler;
+  String? _idfa;
 
   SoftLink._();
 
@@ -61,11 +62,22 @@ class SoftLink {
         platform: details['platform'] ?? 'android',
         osVersion: details['os_version'],
         deviceModel: details['device_model'],
+        deviceBrand: details['device_brand'],
+        userAgent: details['user_agent'],
         screenWidth: details['screen_width'],
         screenHeight: details['screen_height'],
         locale: details['locale'],
       );
     } catch (_) {}
+  }
+
+  /// Android: GAID read by the SDK. iOS: the IDFA passed to [SoftLink.init].
+  Future<String?> _resolveMaid() async {
+    try {
+      if (Platform.isAndroid) return await SoftLinkClient.getGAID();
+      if (Platform.isIOS) return _idfa;
+    } catch (_) {}
+    return null;
   }
 
   /// Initializes the SoftLink SDK.
@@ -83,6 +95,7 @@ class SoftLink {
     String? idfa,
   }) async {
     _instance = SoftLink._();
+    _instance!._idfa = idfa;
     await SoftLinkStorage.init();
     _instance!._client = SoftLinkClient(baseUrl: baseUrl, apiKey: apiKey);
     _instance!._handler = SoftLinkDeepLinkHandler(
@@ -93,16 +106,15 @@ class SoftLink {
     await _instance!._handler.init();
     // Get GAID on Android for ad platform signal quality
     if (Platform.isAndroid) {
-      SoftLinkClient.getGAID().then((gaid) {
-        if (gaid != null) {
-          SoftLinkDeviceInfo.getDeviceId().then((deviceId) {
-            _instance!._client.setUserData(
-              deviceId: deviceId,
-              maid: gaid,
-            );
-          });
-        }
-      }).catchError((_) {});
+      SoftLinkClient.getGAID()
+          .then((gaid) {
+            if (gaid != null) {
+              SoftLinkDeviceInfo.getDeviceId().then((deviceId) {
+                _instance!._client.setUserData(deviceId: deviceId, maid: gaid);
+              });
+            }
+          })
+          .catchError((_) {});
     }
     // Report app open for ad platform tracking
     _instance!._reportAppOpen();
@@ -112,8 +124,10 @@ class SoftLink {
   ///
   /// Throws an assertion error if [SoftLink.init] has not been called.
   static SoftLink get instance {
-    assert(_instance != null,
-        'SoftLink not initialized. Call SoftLink.init() first.');
+    assert(
+      _instance != null,
+      'SoftLink not initialized. Call SoftLink.init() first.',
+    );
     return _instance!;
   }
 
@@ -143,8 +157,10 @@ class SoftLink {
     String? referrerId,
     String? token,
   }) async {
-    assert(_instance != null,
-        'SoftLink not initialized. Call SoftLink.init() first.');
+    assert(
+      _instance != null,
+      'SoftLink not initialized. Call SoftLink.init() first.',
+    );
     return _instance!._client.generateReferralLink(
       screenKey: screenKey,
       values: values,
@@ -173,8 +189,10 @@ class SoftLink {
     required String eventName,
     SoftLinkConversionMetadata? metadata,
   }) async {
-    assert(_instance != null,
-        'SoftLink not initialized. Call SoftLink.init() first.');
+    assert(
+      _instance != null,
+      'SoftLink not initialized. Call SoftLink.init() first.',
+    );
     return _instance!._client.trackConversion(
       token: token,
       eventName: eventName,
@@ -208,8 +226,10 @@ class SoftLink {
     String? lastEventKey,
     Map<String, dynamic>? metadata,
   }) async {
-    assert(_instance != null,
-        'SoftLink not initialized. Call SoftLink.init() first.');
+    assert(
+      _instance != null,
+      'SoftLink not initialized. Call SoftLink.init() first.',
+    );
     return _instance!._client.triggerEvent(
       eventKey: eventKey,
       linkToken: linkToken,
@@ -221,27 +241,40 @@ class SoftLink {
 
   /// Sets user data for improved ad platform signal quality.
   ///
-  /// Call this after user logs in. Email and phone are SHA256 hashed
-  /// before sending — never sent in plain text.
+  /// Call this after user logs in. Email, phone and the known [userData]
+  /// keys (`firstName`, `lastName`, `city`, `state`, `zip`, `country`,
+  /// `gender`, `dob`) are SHA256 hashed before sending — never in plain text.
+  /// Other [userData] keys are sent as-is, so don't put sensitive data there.
+  ///
+  /// The advertising ID (MAID) is read by the SDK itself.
   ///
   /// ```dart
   /// await SoftLink.setUserData(
   ///   email: 'user@example.com',
   ///   phone: '+1234567890',
+  ///   userData: {'firstName': 'Ali', 'lastName': 'Khan'},
   /// );
   /// ```
   static Future<bool> setUserData({
     String? email,
     String? phone,
+    @Deprecated(
+      'The SDK reads the advertising ID itself. This value is ignored.',
+    )
     String? maid,
+    Map<String, dynamic>? userData,
   }) async {
-    assert(_instance != null,
-        'SoftLink not initialized. Call SoftLink.init() first.');
+    assert(
+      _instance != null,
+      'SoftLink not initialized. Call SoftLink.init() first.',
+    );
     final deviceId = await SoftLinkDeviceInfo.getDeviceId();
+    final resolvedMaid = await _instance!._resolveMaid();
     return _instance!._client.setUserData(
       email: email,
       phone: phone,
-      maid: maid,
+      maid: resolvedMaid,
+      userData: userData,
       deviceId: deviceId,
     );
   }
