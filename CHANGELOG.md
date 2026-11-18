@@ -10,6 +10,7 @@
 * Deprecated the `maid` parameter of `SoftLink.setUserData()`: the SDK now reads the advertising ID itself (Android GAID, iOS IDFA passed to `init`)
 * Install (`fingerprint/update`) and app-open events now send device model, brand, OS version, locale, screen size and a device user agent
 * Android `device_model` is now the model only (e.g. `Pixel 7`), with the brand sent separately as `device_brand`; iOS sends the hardware identifier (e.g. `iPhone15,2`)
+* Phone numbers are now normalised to digits only (country code included, no `+`) before SHA256 hashing, as Snapchat requires
 
 ## 0.0.13
 * Added the platform info to enhance the analytics of an event

@@ -150,9 +150,10 @@ class SoftLinkClient {
         hashedEmail = _sha256(email.toLowerCase().trim());
       }
       if (phone != null && phone.isNotEmpty) {
-        // normalize phone — remove spaces, dashes, keep + prefix
-        final normalized = phone.replaceAll(RegExp(r'[\s\-()]'), '');
-        hashedPhone = _sha256(normalized);
+        // Ad platforms expect digits only, with country code (no '+', spaces or dashes)
+        var normalized = phone.replaceAll(RegExp(r'\D'), '');
+        if (normalized.startsWith('00')) normalized = normalized.substring(2);
+        if (normalized.isNotEmpty) hashedPhone = _sha256(normalized);
       }
 
       final extra = _buildUserData(userData);
