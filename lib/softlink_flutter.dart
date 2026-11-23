@@ -95,7 +95,7 @@ class SoftLink {
     String? idfa,
   }) async {
     _instance = SoftLink._();
-    _instance!._idfa = idfa;
+    _instance!._idfa = SoftLinkClient.cleanMaid(idfa);
     await SoftLinkStorage.init();
     _instance!._client = SoftLinkClient(baseUrl: baseUrl, apiKey: apiKey);
     _instance!._handler = SoftLinkDeepLinkHandler(

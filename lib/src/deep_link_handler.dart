@@ -111,26 +111,24 @@ class SoftLinkDeepLinkHandler {
 
     // Get Play Install Referrer on Android
     final referrer = await SoftLinkNativeBridge.getInstallReferrer();
-    final deviceId = idfa ?? await SoftLinkDeviceInfo.getDeviceId();
 
-    // Get GAID on Android — send with fingerprint BEFORE resolveDeferred
-    // so APP_INSTALL event includes MAID for better signal quality
-    String? maid;
-    try {
-      if (idfa == null) {
-        // Android — get GAID
+    // A zeroed IDFA (ATT denied) counts as "not provided"; the device ID then falls back to IDFV
+    final cleanIdfa = SoftLinkClient.cleanMaid(idfa);
+    final deviceId = cleanIdfa ?? await SoftLinkDeviceInfo.getDeviceId();
+
+    // iOS: IDFA. Android: GAID (already filtered for zeros)
+    String? maid = cleanIdfa;
+    if (maid == null) {
+      try {
         maid = await SoftLinkClient.getGAID();
-      } else {
-        // iOS — use IDFA
-        maid = idfa;
-      }
-    } catch (_) {}
+      } catch (_) {}
+    }
 
     if (deviceId.isNotEmpty) {
       await _client.updateFingerprintDeviceId(
         deviceId,
         referrer: referrer,
-        maid: maid, // ← send MAID with fingerprint
+        maid: maid,
       );
     }
 

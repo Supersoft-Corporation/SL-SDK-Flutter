@@ -317,9 +317,18 @@ class SoftLinkClient {
 
   static Future<String?> getGAID() async {
     try {
-      return await _channel.invokeMethod<String>('getGAID');
+      return cleanMaid(await _channel.invokeMethod<String>('getGAID'));
     } catch (e) {
       return null;
     }
+  }
+
+  /// Returns [id], or null when it is empty or all zeros (ad ID unavailable or opted out).
+  static String? cleanMaid(String? id) {
+    if (id == null) return null;
+    final trimmed = id.trim();
+    if (trimmed.isEmpty) return null;
+    if (RegExp(r'^[0\-]+$').hasMatch(trimmed)) return null;
+    return trimmed;
   }
 }

@@ -11,6 +11,7 @@
 * Install (`fingerprint/update`) and app-open events now send device model, brand, OS version, locale, screen size and a device user agent
 * Android `device_model` is now the model only (e.g. `Pixel 7`), with the brand sent separately as `device_brand`; iOS sends the hardware identifier (e.g. `iPhone15,2`)
 * Phone numbers are now normalised to digits only (country code included, no `+`) before SHA256 hashing, as Snapchat requires
+* An advertising ID that is empty or all zeros (Android opt-out or missing AD_ID, iOS ATT denied) is no longer sent as MAID, and a zeroed IDFA no longer becomes the iOS `device_id`
 
 ## 0.0.13
 * Added the platform info to enhance the analytics of an event
