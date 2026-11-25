@@ -22,6 +22,7 @@ import 'package:softlink_flutter/src/device_info.dart';
 import 'src/softlink_client.dart';
 import 'src/deep_link_handler.dart';
 import 'src/storage.dart';
+import 'src/link_token_store.dart';
 import 'src/models.dart';
 
 /// Standard conversion event names for SoftLink tracking.
@@ -98,6 +99,7 @@ class SoftLink {
     _instance!._idfa = SoftLinkClient.cleanMaid(idfa);
     await SoftLinkStorage.init();
     _instance!._client = SoftLinkClient(baseUrl: baseUrl, apiKey: apiKey);
+    SoftLinkLinkToken.refreshConfig(_instance!._client);
     _instance!._handler = SoftLinkDeepLinkHandler(
       client: _instance!._client,
       onDeepLink: onDeepLink,
@@ -203,17 +205,23 @@ class SoftLink {
   /// Triggers a custom event defined in the SoftLink portal.
   ///
   /// - [eventKey]: The event key (UPPERCASE_WITH_UNDERSCORES) defined in portal
-  /// - [linkToken]: Optional deep link token to associate this event with a link
+  /// - [linkToken]: Optional link token (the short code). If you pass one, the
+  ///   SDK also stores it, replacing any token saved before. If you don't, the
+  ///   SDK adds the last saved token while it is inside the duration set for
+  ///   this app in the SoftLink portal. With neither, no token is sent.
   /// - [sequence]: Optional sequence number defined by the developer
   /// - [lastEventKey]: Optional previous event key fired before this one
   /// - [metadata]: Optional event metadata matching the schema defined in portal
+  ///
+  /// Every event also carries a `trigger_type`: `inorganic` when you passed a
+  /// token, `indirect-inorganic` when the SDK added the stored token, and
+  /// `organic` when there is no token.
   ///
   /// Returns `true` if the event was triggered successfully.
   ///
   /// ```dart
   /// await SoftLink.triggerEvent(
   ///   eventKey: 'PRODUCT_PURCHASE',
-  ///   linkToken: deepLink.token,
   ///   sequence: 1,
   ///   lastEventKey: 'PRODUCT_DETAIL',
   ///   metadata: {'productId': '123', 'purchaseDate': '2026-08-28'},
@@ -230,9 +238,23 @@ class SoftLink {
       _instance != null,
       'SoftLink not initialized. Call SoftLink.init() first.',
     );
+    final passed = linkToken?.trim();
+    String? token;
+    String triggerType;
+    if (passed != null && passed.isNotEmpty) {
+      token = passed;
+      triggerType = SoftLinkTriggerType.appToken;
+      await SoftLinkLinkToken.save(passed);
+    } else {
+      token = await SoftLinkLinkToken.active();
+      triggerType = token != null
+          ? SoftLinkTriggerType.storedToken
+          : SoftLinkTriggerType.noToken;
+    }
     return _instance!._client.triggerEvent(
       eventKey: eventKey,
-      linkToken: linkToken,
+      triggerType: triggerType,
+      linkToken: token,
       sequence: sequence,
       lastEventKey: lastEventKey,
       metadata: metadata,

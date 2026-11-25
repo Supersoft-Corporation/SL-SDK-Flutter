@@ -12,6 +12,10 @@
 * Android `device_model` is now the model only (e.g. `Pixel 7`), with the brand sent separately as `device_brand`; iOS sends the hardware identifier (e.g. `iPhone15,2`)
 * Phone numbers are now normalised to digits only (country code included, no `+`) before SHA256 hashing, as Snapchat requires
 * An advertising ID that is empty or all zeros (Android opt-out or missing AD_ID, iOS ATT denied) is no longer sent as MAID, and a zeroed IDFA no longer becomes the iOS `device_id`
+* The SDK remembers the token of the last opened link for the duration set for the app in the SoftLink portal and adds it to `SoftLink.triggerEvent()` when no `linkToken` is passed
+* A `linkToken` passed to `triggerEvent` replaces the remembered token; no token is sent when none is remembered or it has expired
+* Needs the matching SoftLink backend (`/api/sdk/config`); without it nothing is remembered and events behave as before
+* `SoftLink.triggerEvent()` now sends a `trigger_type` with every event: `inorganic` (token passed by the app), `indirect-inorganic` (token added by the SDK from storage) or `organic` (no token)
 
 ## 0.0.13
 * Added the platform info to enhance the analytics of an event

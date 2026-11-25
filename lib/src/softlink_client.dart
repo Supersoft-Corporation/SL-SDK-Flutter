@@ -263,6 +263,25 @@ class SoftLinkClient {
     return out;
   }
 
+  /// Per-app SDK settings from the SoftLink portal. Returns null if the request fails.
+  Future<Map<String, dynamic>?> fetchConfig() async {
+    try {
+      final response = await http
+          .get(
+            Uri.parse('$baseUrl/api/sdk/config'),
+            headers: {'X-API-Key': apiKey},
+          )
+          .timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is Map<String, dynamic>) return data;
+      }
+    } catch (e) {
+      debugPrint('SoftLink: fetchConfig error: $e');
+    }
+    return null;
+  }
+
   Future<bool> trackConversion({
     required String token,
     required String eventName,
@@ -288,6 +307,7 @@ class SoftLinkClient {
 
   Future<bool> triggerEvent({
     required String eventKey,
+    required String triggerType,
     String? linkToken,
     int? sequence,
     String? lastEventKey,
@@ -300,6 +320,7 @@ class SoftLinkClient {
             headers: {'Content-Type': 'application/json', 'X-API-Key': apiKey},
             body: jsonEncode({
               'event_key': eventKey,
+              'trigger_type': triggerType,
               if (linkToken != null) 'link_token': linkToken,
               if (sequence != null) 'sequence': sequence,
               if (lastEventKey != null) 'last_event_key': lastEventKey,

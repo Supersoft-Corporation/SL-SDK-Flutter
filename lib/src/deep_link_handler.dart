@@ -7,6 +7,7 @@ import 'package:softlink_flutter/src/models.dart';
 import 'package:softlink_flutter/src/native_bridge.dart';
 import 'softlink_client.dart';
 import 'storage.dart';
+import 'link_token_store.dart';
 
 class SoftLinkDeepLinkHandler {
   final SoftLinkClient _client;
@@ -94,6 +95,7 @@ class SoftLinkDeepLinkHandler {
     try {
       final deepLink = await _client.resolveToken(token, utmSource: utmSource);
       if (deepLink != null) {
+        await SoftLinkLinkToken.save(deepLink.token);
         onDeepLink?.call(deepLink);
       } else {
         onDeepLink?.call(null);
@@ -136,6 +138,9 @@ class SoftLinkDeepLinkHandler {
       referrer: referrer,
       deviceId: deviceId,
     );
-    if (deepLink != null) onDeepLink?.call(deepLink);
+    if (deepLink != null) {
+      await SoftLinkLinkToken.save(deepLink.token);
+      onDeepLink?.call(deepLink);
+    }
   }
 }

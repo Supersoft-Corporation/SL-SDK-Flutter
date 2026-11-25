@@ -347,6 +347,74 @@ void initState() {
 }
 ```
 
+## Passing user data
+
+Call `SoftLink.setUserData()` after the user logs in, and again if their details change. It improves ad-platform matching for later app-open events.
+
+```dart
+await SoftLink.setUserData(
+  email: 'user@example.com',
+  phone: '+923001234567',
+  userData: {
+    'firstName': 'Ali',
+    'lastName': 'Khan',
+    'city': 'Lahore',
+    'country': 'pk',
+    'gender': 'm',
+  },
+);
+```
+
+It returns `true` if the data was saved and `false` otherwise.
+
+## Link token on events
+
+When a user opens your app from a SoftLink link, the SDK remembers that link's token and adds it to `SoftLink.triggerEvent()` calls, so the events are attributed to the link, until the duration set for your app in the SoftLink portal runs out.
+
+- The duration is set per app in the portal. If it isn't set, nothing is stored and events behave as before.
+- Passing `linkToken` to `triggerEvent` replaces the stored token and restarts the timer.
+- Opening another link replaces the stored token and restarts the timer.
+- When no token is stored, or it has expired, no token is sent.
+- Your app doesn't need to do anything.
+- Every event is sent with a `trigger_type`: `inorganic` when your app passed `linkToken`, `indirect-inorganic` when the SDK added the stored token, and `organic` when there is no token.
+
+### What gets hashed
+
+Everything below is hashed with SHA-256 on the device. The plain values never leave the app.
+
+| Parameter | How it is processed |
+|---|---|
+| `email` | Trimmed and lowercased |
+| `phone` | All non-digits are removed (including `+`), then hashed |
+| `userData` keys `firstName`, `lastName`, `city`, `state`, `zip`, `country`, `gender`, `dob` | Trimmed and lowercased |
+
+Key names ignore case and underscores, so `first_name` and `FIRSTNAME` also work. Any other `userData` key is sent as-is, unhashed. Do not put sensitive or personal data under custom keys.
+
+### Format your values before passing them
+
+The SDK only trims and lowercases, and hashes cannot be corrected afterwards. Pass clean values:
+
+- **phone:** with country code, for example `+923001234567`. Local numbers starting with `0` can't be fixed by the SDK.
+- **firstName, lastName:** letters only, no punctuation.
+- **city:** letters only, no spaces or punctuation.
+- **state:** two-letter code where one exists.
+- **zip:** no spaces or dashes.
+- **country:** two-letter ISO code, for example `pk`.
+- **gender:** `f` or `m`.
+
+Not every ad platform uses every field, and some fields are stored but not forwarded.
+
+### When the data is used
+
+User data is attached to app-open events that happen after `setUserData` succeeds. The install event fires before login, so it never carries email, phone or names.
+
+### Advertising ID
+
+The SDK reads the advertising ID itself. The `maid` parameter of `setUserData` is deprecated and ignored.
+
+- **Android:** read automatically. An empty, zeroed or opted-out ID is not sent.
+- **iOS:** ask for tracking permission in your app, then pass the IDFA to `SoftLink.init(idfa: ...)`. A zeroed IDFA is ignored.
+
 **Notes:**
 - ATT permission is optional — SDK falls back to IDFV if IDFA is unavailable ✅
 - Show ATT prompt at the right time — avoid conflicts with notification permission dialogs ✅
